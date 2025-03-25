@@ -1,0 +1,28 @@
+import sqlite3
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+import joblib
+
+DB_FILE = "database.db"
+MODEL_FILE = "model.pkl"
+
+# Train model
+def train_model():
+    conn = sqlite3.connect(DB_FILE)
+    df = pd.read_sql("SELECT * FROM turbines", conn)
+    conn.close()
+    
+    X = df[["wind_speed", "blade_angle"]]
+    y = df["power_output"]
+    
+    model = LinearRegression()
+    model.fit(X, y)
+    
+    joblib.dump(model, MODEL_FILE)
+    print("Model trained and saved.")
+
+# Predict efficiency
+def predict_efficiency(wind_speed, blade_angle):
+    model = joblib.load(MODEL_FILE)
+    prediction = model.predict([[wind_speed, blade_angle]])
+    return prediction[0]
